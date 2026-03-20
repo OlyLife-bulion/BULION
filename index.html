@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BULION 登録料金計算ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Montserrat:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #fdf8f3;
+  --surface:      #ffffff;
+  --surface2:     #fef3e8;
+  --border:       #e8d5c0;
+  --accent:       #c2600a;
+  --accent-light: #e8935a;
+  --accent-fade:  #fff0e4;
+  --text:         #2d1f0e;
+  --text-muted:   #7a5c3d;
+  --danger:       #dc2626;
+  --success:      #16a34a;
+  --shadow:       0 4px 20px rgba(194, 96, 10, 0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+a{color:var(--accent)}
+
+/* ===== HEADER ===== */
+header{background:var(--surface);border-bottom:3px solid var(--accent);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.logo-area{display:flex;align-items:center;gap:12px}
+.logo-area img{height:40px;width:auto;object-fit:contain}
+.brand-name{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;color:var(--accent);letter-spacing:2px}
+.header-right{display:flex;align-items:center;gap:8px}
+#gear-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:.2s}
+#gear-btn:hover{background:var(--accent-fade);color:var(--accent)}
+@media(max-width:900px){#gear-btn{display:none}}
+
+/* ===== ADMIN BAR ===== */
+#admin-bar{display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin:8px 16px;padding:12px 16px}
+#admin-bar.visible{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#admin-bar label{font-size:13px;color:var(--text-muted)}
+#admin-bar input{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;width:80px}
+#admin-bar button{padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+
+/* ===== LAYOUT ===== */
+.main-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px;max-width:1400px;margin:0 auto}
+@media(max-width:900px){.main-wrap{grid-template-columns:1fr}}
+
+/* ===== PANEL ===== */
+.panel{display:flex;flex-direction:column;gap:16px}
+
+/* ===== CARD ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.card-title{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ===== STEP BADGE ===== */
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;font-family:'Montserrat',sans-serif;flex-shrink:0}
+
+/* ===== FORM ELEMENTS ===== */
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans JP',sans-serif;background:var(--surface);color:var(--text);transition:.2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(194,96,10,0.1)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ===== RADIO / BUTTON GROUP ===== */
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.btn-opt{padding:7px 14px;border:2px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;transition:.2s}
+.btn-opt:hover{border-color:var(--accent-light);background:var(--accent-fade)}
+.btn-opt.active{border-color:var(--accent);background:var(--accent-fade);color:var(--accent);font-weight:600}
+
+/* ===== TOGGLE ===== */
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.toggle-label{font-size:13px;color:var(--text-muted)}
+.toggle{position:relative;display:inline-block;width:40px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:22px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+
+/* ===== PRODUCT CARDS ===== */
+.product-section-title{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.product-card{border:2px solid var(--border);border-radius:10px;padding:8px;cursor:pointer;text-align:center;transition:.2s;background:var(--surface);position:relative}
+.product-card:hover{border-color:var(--accent-light);background:var(--accent-fade)}
+.product-card.selected{border-color:var(--accent);background:var(--accent-fade)}
+.product-card.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.product-card img{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto 4px}
+@media(max-width:900px){.product-card img{width:100px;height:100px}}
+.product-card .p-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.product-card .p-price{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);font-weight:500}
+.product-card .p-pv{font-size:10px;color:var(--text-muted)}
+.qty-ctrl{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px}
+.qty-ctrl button{width:20px;height:20px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.qty-ctrl button:hover{background:var(--accent-fade)}
+.qty-ctrl span{font-family:'DM Mono',monospace;font-size:12px;min-width:16px;text-align:center}
+
+/* ===== SUMMARY CARDS (STEP3 bottom) ===== */
+.summary-section{display:none;flex-direction:column;gap:12px}
+.summary-section.visible{display:flex}
+
+.product-summary-card .ps-row{display:flex;align-items:center;gap:4px;padding:4px 0;font-size:13px;border-bottom:1px dashed var(--border)}
+.product-summary-card .ps-row:last-child{border-bottom:none;font-weight:700;color:var(--accent)}
+.product-summary-card .ps-name{flex:1}
+.product-summary-card .ps-qty{width:24px;text-align:center;font-family:'DM Mono',monospace;color:var(--text-muted);font-size:11px}
+.product-summary-card .ps-price{width:60px;text-align:right;font-family:'DM Mono',monospace;font-size:12px}
+.product-summary-card .ps-pv{width:60px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)}
+
+.fee-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px dashed var(--border)}
+.fee-row:last-child{border-bottom:none;font-weight:700;color:var(--accent)}
+.fee-row .fee-label{color:var(--text-muted)}
+.fee-row.support-row{opacity:1;transition:.3s}
+.fee-row.support-row.hidden{display:none}
+.fee-total-jpy{font-size:12px;color:var(--text-muted);text-align:right;margin-top:4px;font-family:'DM Mono',monospace}
+
+/* ===== RANK CARD ===== */
+.rank-card-inner{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 14px;border-radius:20px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.rank-badge.p3{background:#3b82f6}
+.rank-badge.p4{background:#8b5cf6}
+.rank-badge.p5{background:#d97706}
+.rank-badge.none{background:#9ca3af}
+.rank-info{font-size:13px;color:var(--text-muted)}
+.rank-info strong{color:var(--text)}
+.pv-bar-wrap{flex:1;min-width:120px}
+.pv-bar-bg{height:10px;background:#e8d5c0;border-radius:10px;overflow:hidden;margin-top:4px}
+.pv-bar-fill{height:100%;border-radius:10px;background:var(--accent);transition:.4s;max-width:100%}
+.pv-bar-fill.warn{background:var(--danger)}
+.pv-warn{font-size:11px;color:var(--danger);margin-top:4px;font-weight:600}
+
+/* ===== PAYMENT UI ===== */
+#payment-section{display:none}
+#payment-section.visible{display:block}
+.pay-mode-btns{display:flex;gap:10px;margin-bottom:12px}
+.pay-mode-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;text-align:center;transition:.2s}
+.pay-mode-btn:hover{border-color:var(--accent-light);background:var(--accent-fade)}
+.pay-mode-btn.active{border-color:var(--accent);background:var(--accent-fade)}
+.pay-mode-btn .pmb-icon{font-size:20px;display:block;margin-bottom:4px}
+.pay-mode-btn .pmb-label{font-size:12px;font-weight:600;color:var(--text)}
+.pay-mode-btn .pmb-desc{font-size:10px;color:var(--text-muted);margin-top:2px}
+.pay-box{display:none;margin-top:12px}
+.pay-box.visible{display:block}
+.pay-sub-title{font-size:12px;font-weight:700;color:var(--accent);margin:10px 0 6px;border-left:3px solid var(--accent);padding-left:8px}
+.support-pay-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.support-pay-opt{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;transition:.2s}
+.support-pay-opt.active{border-color:var(--accent);background:var(--accent-fade);color:var(--accent);font-weight:600}
+.pay-input-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pay-input-row .pay-icon{width:20px;text-align:center;font-size:14px}
+.pay-input-row .pay-lbl{flex:1;font-size:12px;color:var(--text-muted)}
+.pay-input-row .pay-curr{font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted)}
+.pay-input-row input{width:100px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:13px;text-align:right}
+.pay-input-row input:focus{outline:none;border-color:var(--accent)}
+.pay-input-row .pay-auto{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);font-weight:600;min-width:80px;text-align:right}
+.pay-balance{margin-top:8px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;font-family:'DM Mono',monospace}
+.pay-balance.ok{background:#dcfce7;color:var(--success)}
+.pay-balance.over{background:#fee2e2;color:var(--danger)}
+.pay-balance.under{background:#f3f4f6;color:#6b7280}
+
+/* ===== RIGHT PANEL ===== */
+.right-panel{display:flex;flex-direction:column;gap:16px}
+/* スマホ時: 右パネルは左パネルの下に自然配置（DOM順通り） */
+@media(max-width:900px){
+  .right-panel{margin-top:8px}
+}
+
+/* ===== PREVIEW ===== */
+.preview-card{/* sticky解除: 常にスクロール可能な通常配置 */}
+#preview-text{font-family:'DM Mono',monospace;font-size:11.5px;line-height:1.7;white-space:pre-wrap;word-break:break-all;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);min-height:200px;max-height:70vh;overflow-y:auto}
+
+/* ===== POSITION DIAGRAM ===== */
+.pos-diagram{display:flex;flex-direction:column;align-items:center;gap:0}
+.pos-node{border:2px solid var(--border);border-radius:8px;padding:6px 12px;text-align:center;background:var(--surface);min-width:110px}
+.pos-node.referrer{border-color:var(--text-muted)}
+.pos-node.target{border-color:var(--accent-light)}
+.pos-node.registrant{border-color:var(--accent);background:var(--accent-fade)}
+.pos-node.empty{border-style:dashed;color:var(--text-muted)}
+.pos-node .pn-name{font-size:12px;font-weight:600}
+.pos-node .pn-id{font-size:10px;color:var(--text-muted)}
+.pos-connector{width:2px;height:18px;background:var(--border);margin:0 auto}
+.pos-branch-line{display:flex;align-items:flex-start;gap:16px}
+.pos-branch-wrap{display:flex;flex-direction:column;align-items:center}
+.pos-arrow-label{font-size:10px;color:var(--text-muted);margin-top:4px}
+
+/* ===== COPY BUTTON ===== */
+.copy-card{text-align:center}
+#copy-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;letter-spacing:.5px;transition:.2s}
+#copy-btn:hover{background:#a34f08}
+#copy-btn.copied{background:var(--success)}
+
+/* ===== MISC ===== */
+.hidden-section{display:none}
+.hidden-section.visible{display:block}
+.divider{height:1px;background:var(--border);margin:8px 0}
+.text-muted{color:var(--text-muted)}
+.text-sm{font-size:12px}
+.mono{font-family:'DM Mono',monospace}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <img src="image_aae024.png" alt="BULION" onerror="this.src='https://placehold.co/80x40/fef3e8/c2600a?text=BULION'">
+    <span class="brand-name">BULION</span>
+  </div>
+  <div class="header-right">
+    <button id="gear-btn" title="管理設定">⚙️</button>
+  </div>
+</header>
+
+<!-- ADMIN BAR -->
+<div id="admin-bar">
+  <label>為替レート $1 =</label>
+  <input type="number" id="fx-rate" value="170" min="1" step="1">
+  <label>¥</label>
+  <button onclick="recalc()">適用</button>
+  <span class="text-muted text-sm">（デフォルト: $1 = ¥170）</span>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+<!-- ========== LEFT PANEL ========== -->
+<div class="panel" id="left-panel">
+
+  <!-- STEP1: 登録種別 -->
+  <div class="card">
+    <div class="card-title"><span class="step-badge">1</span> 登録種別</div>
+    <div class="btn-group" id="reg-type-group">
+      <button class="btn-opt active" data-val="new" onclick="selectRegType(this)">新規登録</button>
+      <button class="btn-opt" data-val="new-base" onclick="selectRegType(this)">新規（ベースセンター）</button>
+      <button class="btn-opt" data-val="add" onclick="selectRegType(this)">追加登録</button>
+    </div>
+  </div>
+
+  <!-- STEP2: 発送先 -->
+  <div class="card">
+    <div class="card-title"><span class="step-badge">2</span> 発送先</div>
+    <div class="form-group">
+      <select id="shipping-zone" onchange="recalc()">
+        <option value="10" selected>🇯🇵 日本・韓国・豪州・欧州・米国など（10%）</option>
+        <option value="0">🇹🇼 台湾・中国・マレーシア・香港（0%）</option>
+        <option value="5">🌏 東南アジア（5%）</option>
+        <option value="7">🇹🇭 タイ（7%）</option>
+        <option value="9">🇸🇬 シンガポール（9%）</option>
+        <option value="11">🇮🇩 インドネシア（11%）</option>
+        <option value="12">🇵🇭 フィリピン（12%）</option>
+        <option value="15">🌍 中東・アフリカ（15%）</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STEP3: 商品選択 -->
+  <div class="card">
+    <div class="card-title"><span class="step-badge">3</span> 商品選択</div>
+
+    <!-- MAIN PRODUCTS -->
+    <div class="product-section-title">メイン商品</div>
+    <div class="product-grid" id="main-product-grid"></div>
+
+    <!-- SUB PRODUCTS -->
+    <div class="product-section-title" style="margin-top:14px">サブ商品</div>
+    <div class="product-grid" id="sub-product-grid"></div>
+
+    <div style="height:12px"></div>
+
+    <!-- 3-1: 選択商品サマリ -->
+    <div class="summary-section" id="summary-section">
+
+      <div class="card product-summary-card" style="background:var(--surface2)">
+        <div class="card-title">📦 選択中の商品</div>
+        <div id="product-summary-rows"></div>
+      </div>
+
+      <!-- 3-2: 料金内訳 -->
+      <div class="card" style="background:var(--surface2)">
+        <div class="card-title">💰 料金内訳</div>
+        <div class="fee-row">
+          <span class="fee-label">商品代金</span>
+          <span class="mono" id="fee-products">$0</span>
+        </div>
+        <div class="fee-row">
+          <span class="fee-label">送料</span>
+          <span class="mono" id="fee-shipping">$0</span>
+        </div>
+        <div class="fee-row support-row" id="fee-support-row">
+          <span class="fee-label">サポート料（新規のみ）</span>
+          <span class="mono">$100</span>
+        </div>
+        <div class="divider"></div>
+        <div class="fee-row">
+          <span>合計（USD）</span>
+          <span class="mono" id="fee-total-usd">$0</span>
+        </div>
+        <div class="fee-total-jpy" id="fee-total-jpy">≈ ¥0</div>
+      </div>
+
+      <!-- 3-3: 登録ランク＋PV -->
+      <div class="card" style="background:var(--surface2)">
+        <div class="card-title">🏅 登録ランク</div>
+        <div class="rank-card-inner">
+          <span class="rank-badge none" id="rank-badge">-</span>
+          <div class="rank-info">
+            <div id="rank-sets">-</div>
+            <div id="rank-pv-text">PV: 0</div>
+          </div>
+          <div class="pv-bar-wrap">
+            <div class="pv-bar-bg">
+              <div class="pv-bar-fill" id="pv-bar" style="width:0%"></div>
+            </div>
+            <div class="pv-warn" id="pv-warn" style="display:none">⚠️ PVが750の倍数ではありません</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-4: 支払い方法 -->
+      <div class="card" id="payment-section" style="background:var(--surface2)">
+        <div class="card-title">💳 支払い方法を選んでください</div>
+
+        <!-- 5択ボタン -->
+        <div class="btn-group" style="flex-wrap:wrap;gap:8px" id="pay-method-group">
+          <button class="btn-opt" data-pm="point"    onclick="selectPayMethod(this)">🟢 ポイント</button>
+          <button class="btn-opt" data-pm="usdt"     onclick="selectPayMethod(this)">🔵 USDT</button>
+          <button class="btn-opt" data-pm="credit"   onclick="selectPayMethod(this)">💳 クレジット</button>
+          <button class="btn-opt" data-pm="cash"     onclick="selectPayMethod(this)">💴 現金</button>
+          <button class="btn-opt" data-pm="combined" onclick="selectPayMethod(this)">🔀 複数の決済方法を併用</button>
+        </div>
+
+        <!-- 「複数の決済方法を併用」選択時のみ表示 -->
+        <div id="combined-detail" style="display:none;margin-top:12px">
+
+          <!-- サポート料支払い -->
+          <div id="pay-support-section-d">
+            <div class="pay-sub-title">① サポート料の支払い</div>
+            <div class="support-pay-opts">
+              <button class="support-pay-opt" data-mode="d" data-val="point"  onclick="selectSupportPay(this)">🟢 ポイント</button>
+              <button class="support-pay-opt" data-mode="d" data-val="usdt"   onclick="selectSupportPay(this)">🔵 USDT</button>
+              <button class="support-pay-opt" data-mode="d" data-val="credit" onclick="selectSupportPay(this)">💳 クレジット</button>
+              <button class="support-pay-opt active" data-mode="d" data-val="cash" onclick="selectSupportPay(this)">💴 現金 ¥15,400固定</button>
+            </div>
+            <div id="support-pay-display-d" style="font-size:12px;color:var(--text-muted);margin-bottom:8px">選択中: 現金 → ¥15,400（固定）</div>
+          </div>
+
+          <!-- 製品代金・送料 -->
+          <div class="pay-sub-title">② 製品代金・送料の支払い</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">先に入力する方法を選択 →
+            <button class="btn-opt" id="btn-dollar-first" style="padding:3px 10px;font-size:11px" onclick="setPayMode('dollar_first')">💵 ドル系先入力</button>
+            <button class="btn-opt" id="btn-cash-first"   style="padding:3px 10px;font-size:11px" onclick="setPayMode('cash_first')">💴 現金先入力</button>
+          </div>
+
+          <!-- Dollar First -->
+          <div class="pay-box" id="pay-box-dollar">
+            <div class="pay-input-row">
+              <span class="pay-icon">🟢</span><span class="pay-lbl">ポイント</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="d-point" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">🔵</span><span class="pay-lbl">USDT</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="d-usdt" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">💳</span><span class="pay-lbl">クレジット</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="d-credit" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">💴</span><span class="pay-lbl">現金（自動計算）</span>
+              <span class="pay-curr">¥</span>
+              <span class="pay-auto" id="d-cash-auto">¥0</span>
+            </div>
+            <div class="pay-balance" id="d-balance">-</div>
+          </div>
+
+          <!-- Cash First -->
+          <div class="pay-box" id="pay-box-cash">
+            <div class="pay-input-row">
+              <span class="pay-icon">💴</span><span class="pay-lbl">現金（先入力）</span>
+              <span class="pay-curr">¥</span>
+              <input type="number" id="c-cash" min="0" step="100" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">🟢</span><span class="pay-lbl">ポイント（追加）</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="c-point" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">🔵</span><span class="pay-lbl">USDT（追加）</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="c-usdt" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-input-row">
+              <span class="pay-icon">💳</span><span class="pay-lbl">クレジット（追加）</span>
+              <span class="pay-curr">$</span>
+              <input type="number" id="c-credit" min="0" step="1" value="0" oninput="recalcPay()">
+            </div>
+            <div class="pay-balance" id="c-balance">-</div>
+          </div>
+
+        </div><!-- /combined-detail -->
+      </div>
+
+    </div><!-- /summary-section -->
+  </div><!-- /card step3 -->
+
+  <!-- STEP4: 会員情報 -->
+  <div class="card">
+    <div class="card-title"><span class="step-badge">4</span> 会員情報</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>1. 会員名</label>
+        <input type="text" id="f-name" placeholder="山田 太郎" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>2. 性別</label>
+        <select id="f-gender" onchange="recalc()">
+          <option value="">選択</option>
+          <option value="男性">男性</option>
+          <option value="女性">女性</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>3. 生年月日（yyyymmdd）</label>
+        <input type="text" id="f-dob" placeholder="19900101" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>4. 証明書番号</label>
+        <input type="text" id="f-id-num" placeholder="免許証番号等" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>5. メールアドレス</label>
+        <input type="email" id="f-email" placeholder="example@email.com" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>6. 携帯電話番号</label>
+        <input type="tel" id="f-phone" placeholder="090-0000-0000" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>7. 登録住所</label>
+      <input type="text" id="f-addr" placeholder="東京都渋谷区..." oninput="recalc()">
+    </div>
+
+    <div class="form-group">
+      <label>8. 登録住所 郵便番号</label>
+      <input type="text" id="f-zip" placeholder="150-0001" oninput="recalc()">
+    </div>
+
+    <!-- Delivery address toggle -->
+    <div class="toggle-row">
+      <label class="toggle">
+        <input type="checkbox" id="diff-addr-toggle" onchange="toggleDelivery()">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">登録住所とお届け先住所が異なる</span>
+    </div>
+
+    <div class="hidden-section" id="delivery-section">
+      <div class="form-group">
+        <label>9. お届け先 氏名</label>
+        <input type="text" id="f-del-name" placeholder="山田 太郎" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>10. お届け先 電話番号</label>
+        <input type="tel" id="f-del-phone" placeholder="090-0000-0000" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>11. お届け先 住所</label>
+        <input type="text" id="f-del-addr" placeholder="東京都渋谷区..." oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>12. お届け先 郵便番号</label>
+        <input type="text" id="f-del-zip" placeholder="150-0001" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-top:4px">
+      <div class="form-group">
+        <label>14. 紹介者 ID</label>
+        <input type="text" id="f-ref-id" placeholder="JP12345" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>紹介者 名前</label>
+        <input type="text" id="f-ref-name" placeholder="田中 花子" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>15. 指定ポジション ID</label>
+        <input type="text" id="f-pos-id" placeholder="JP67890" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>指定ポジション 名前</label>
+        <input type="text" id="f-pos-name" placeholder="鈴木 一郎" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>16. 指定区分</label>
+      <div class="btn-group" id="pos-dir-group">
+        <button class="btn-opt active" data-val="left1" onclick="selectPos(this)">←1人目は左</button>
+        <button class="btn-opt" data-val="left"  onclick="selectPos(this)">←左</button>
+        <button class="btn-opt" data-val="right" onclick="selectPos(this)">右→</button>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /left panel -->
+
+<!-- ========== RIGHT PANEL ========== -->
+<div class="right-panel">
+
+  <!-- Position Diagram -->
+  <div class="card">
+    <div class="card-title">🌳 指定ポジション図</div>
+    <div class="pos-diagram" id="pos-diagram">
+      <div class="pos-node referrer">
+        <div class="pn-name" id="pd-ref-name">（紹介者）</div>
+        <div class="pn-id" id="pd-ref-id">-</div>
+      </div>
+      <div class="pos-connector"></div>
+      <div class="pos-node target">
+        <div class="pn-name" id="pd-pos-name">（指定ポジション）</div>
+        <div class="pn-id" id="pd-pos-id">-</div>
+      </div>
+      <div class="pos-connector"></div>
+      <div class="pos-branch-line">
+        <div class="pos-branch-wrap" id="pd-left-wrap">
+          <div class="pos-node empty" id="pd-left-node" style="display:none"></div>
+          <div class="pos-arrow-label">左</div>
+        </div>
+        <div style="width:16px"></div>
+        <div class="pos-branch-wrap" id="pd-right-wrap">
+          <div class="pos-node empty" id="pd-right-node" style="display:none"></div>
+          <div class="pos-arrow-label">右</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:8px;background:var(--accent-fade);border-radius:6px;border-left:3px solid var(--accent-light)">
+      ⚠️ こちらの図はあくまでイメージです。必ず組織図をご確認ください。
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div class="card preview-card">
+    <div class="card-title">📋 リアルタイムプレビュー</div>
+    <div id="preview-text">商品を選択してください</div>
+  </div>
+
+  <!-- Copy Button -->
+  <div class="card copy-card">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">上記の内容をそのままコピーできます</div>
+    <button id="copy-btn" onclick="copyToClipboard()">📋 クリップボードにコピー</button>
+  </div>
+
+</div><!-- /right panel -->
+
+</div><!-- /main-wrap -->
+
+<script>
+// ===== DATA =====
+const MAIN_PRODUCTS = [
+  { id:"OLY-HCA002",  name:"P90",                price:1000, pv:750  },
+  { id:"OLY-HCA002A", name:"P90+",               price:1500, pv:1125 },
+  { id:"OLY-PKG003",  name:"P90+（ジェルセット）", price:2000, pv:1500 },
+  { id:"OLY-SK-M3",   name:"Shaken",             price:1000, pv:750  }
+];
+const SUB_PRODUCTS = [
+  { id:"OLY-GEL-001", name:"P90+専用ジェル",  price:500, pv:375 },
+  { id:"OLY-HCA005",  name:"A9",              price:500, pv:375 },
+  { id:"OLY-PKG004",  name:"GALAXY",          price:500, pv:375 },
+  { id:"OLY-TPC002",  name:"水素バー",        price:600, pv:375 },
+  { id:"OLY-TPC003",  name:"VITALITY WAND",   price:600, pv:375 },
+  { id:"OLY-SL-6-P",  name:"SKYLINE",         price:500, pv:375 }
+];
+
+// Product images (Base64 placeholders — replace with actual base64 strings)
+const PRODUCT_IMAGES = {};
+// All products use placeholder since no actual images provided
+[...MAIN_PRODUCTS, ...SUB_PRODUCTS].forEach(p => {
+  PRODUCT_IMAGES[p.id] = null; // will use placehold.co
+});
+
+// ===== STATE =====
+let state = {
+  regType: 'new',
+  shippingRate: 10,
+  quantities: {}, // {id: qty}
+  payMethod: null, // 'point'|'usdt'|'credit'|'cash'|'combined'
+  payMode: null,   // 'dollar_first' | 'cash_first' (combined時のみ)
+  supportPay: { d: 'cash', c: 'cash' },
+  posDirection: 'left1', // 'left1'|'left'|'right'
+  fxRate: 170
+};
+
+// ===== INIT =====
+function init() {
+  renderProducts('main', MAIN_PRODUCTS);
+  renderProducts('sub', SUB_PRODUCTS);
+  recalc();
+}
+
+function renderProducts(type, products) {
+  const grid = document.getElementById(type + '-product-grid');
+  grid.innerHTML = '';
+  products.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.id = 'pc-' + p.id;
+    const imgSrc = PRODUCT_IMAGES[p.id] || `https://placehold.co/120x120/fef3e8/c2600a?text=${encodeURIComponent(p.name)}`;
+    card.innerHTML = `
+      <img src="${imgSrc}" alt="${p.name}" onerror="this.src='https://placehold.co/120x120/fef3e8/c2600a?text=BULION'">
+      <div class="p-name">${p.name}</div>
+      <div class="p-price">$${p.price.toLocaleString()}</div>
+      <div class="p-pv">${p.pv} PV</div>
+      <div class="qty-ctrl" id="qty-${p.id}" style="display:none">
+        <button onclick="changeQty('${p.id}',-1,event)">－</button>
+        <span id="qty-val-${p.id}">1</span>
+        <button onclick="changeQty('${p.id}',1,event)">＋</button>
+      </div>
+    `;
+    card.addEventListener('click', () => toggleProduct(p.id));
+    grid.appendChild(card);
+  });
+}
+
+function toggleProduct(id) {
+  if (state.quantities[id]) {
+    delete state.quantities[id];
+    document.getElementById('pc-' + id).classList.remove('selected');
+    document.getElementById('qty-' + id).style.display = 'none';
+  } else {
+    state.quantities[id] = 1;
+    document.getElementById('pc-' + id).classList.add('selected');
+    document.getElementById('qty-' + id).style.display = 'flex';
+    document.getElementById('qty-val-' + id).textContent = '1';
+  }
+  enforceMainRequired();
+  recalc();
+}
+
+function changeQty(id, delta, e) {
+  e.stopPropagation();
+  const cur = state.quantities[id] || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) {
+    delete state.quantities[id];
+    document.getElementById('pc-' + id).classList.remove('selected');
+    document.getElementById('qty-' + id).style.display = 'none';
+  } else {
+    state.quantities[id] = next;
+    document.getElementById('qty-val-' + id).textContent = next;
+  }
+  enforceMainRequired();
+  recalc();
+}
+
+function enforceMainRequired() {
+  // If regType is 'new': SUB disabled unless MAIN selected
+  if (state.regType === 'new') {
+    const hasMain = MAIN_PRODUCTS.some(p => state.quantities[p.id]);
+    SUB_PRODUCTS.forEach(p => {
+      const card = document.getElementById('pc-' + p.id);
+      if (!hasMain) {
+        card.classList.add('disabled');
+        if (state.quantities[p.id]) {
+          delete state.quantities[p.id];
+          card.classList.remove('selected');
+          document.getElementById('qty-' + p.id).style.display = 'none';
+        }
+      } else {
+        card.classList.remove('disabled');
+      }
+    });
+  } else {
+    SUB_PRODUCTS.forEach(p => {
+      document.getElementById('pc-' + p.id).classList.remove('disabled');
+    });
+  }
+}
+
+function selectRegType(btn) {
+  document.querySelectorAll('#reg-type-group .btn-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.regType = btn.dataset.val;
+  enforceMainRequired();
+  recalc();
+}
+
+function selectPos(btn) {
+  document.querySelectorAll('#pos-dir-group .btn-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.posDirection = btn.dataset.val; // 'left1' | 'left' | 'right'
+  recalc();
+}
+
+// 支払い方法 5択
+function selectPayMethod(btn) {
+  document.querySelectorAll('#pay-method-group .btn-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.payMethod = btn.dataset.pm;
+  // 「複数の決済方法を併用」のみ詳細UI表示
+  const detail = document.getElementById('combined-detail');
+  if (state.payMethod === 'combined') {
+    detail.style.display = '';
+  } else {
+    detail.style.display = 'none';
+    state.payMode = null; // リセット
+  }
+  recalc();
+}
+
+function toggleDelivery() {
+  const on = document.getElementById('diff-addr-toggle').checked;
+  document.getElementById('delivery-section').classList.toggle('visible', on);
+  recalc();
+}
+
+// ===== 切り上げヘルパー（小数点第2位まで切り上げ） =====
+function roundUp2(n) {
+  return Math.ceil(n * 100) / 100;
+}
+function fmtUSD(n) {
+  // 小数点以下がある場合は第2位まで表示、なければ整数
+  if (n % 1 === 0) return `$${n.toLocaleString()}`;
+  return `$${roundUp2(n).toFixed(2)}`;
+}
+
+// ===== CALC ENGINE =====
+function getCalc() {
+  const fxRate = parseFloat(document.getElementById('fx-rate').value) || 170;
+  state.fxRate = fxRate;
+
+  let productTotal = 0;
+  let pvTotal = 0;
+  let itemCount = 0;
+  const allProducts = [...MAIN_PRODUCTS, ...SUB_PRODUCTS];
+
+  allProducts.forEach(p => {
+    const qty = state.quantities[p.id] || 0;
+    if (qty > 0) {
+      productTotal += p.price * qty;
+      pvTotal += p.pv * qty;
+      itemCount += qty;
+    }
+  });
+
+  const shippingRate = parseInt(document.getElementById('shipping-zone').value) || 10;
+  // 送料：小数点第2位まで切り上げ
+  const shippingAmt = roundUp2(productTotal * shippingRate / 100);
+  const supportFee = (state.regType !== 'add') ? 100 : 0;
+  const totalUSD = roundUp2(productTotal + supportFee + shippingAmt);
+  const totalJPY = Math.ceil(totalUSD * fxRate);
+
+  // Rank
+  const sets = pvTotal > 0 ? Math.floor(pvTotal / 750) : 0;
+  let rank = 'none', rankLabel = '-';
+  if (pvTotal >= 2250) { rank = 'p5'; rankLabel = 'P5'; }
+  else if (pvTotal >= 1500) { rank = 'p4'; rankLabel = 'P4'; }
+  else if (pvTotal >= 750) { rank = 'p3'; rankLabel = 'P3'; }
+
+  const pvValid = pvTotal > 0 && pvTotal % 750 === 0;
+
+  return { productTotal, pvTotal, itemCount, shippingRate, shippingAmt, supportFee, totalUSD, totalJPY, sets, rank, rankLabel, pvValid, fxRate };
+}
+
+function recalc() {
+  const c = getCalc();
+
+  // Summary section visibility
+  const hasItems = c.itemCount > 0;
+  document.getElementById('summary-section').classList.toggle('visible', hasItems);
+
+  if (hasItems) {
+    updateProductSummary(c);
+    updateFeeBreakdown(c);
+    updateRankCard(c);
+
+    // Payment section
+    const showPayment = c.pvValid;
+    document.getElementById('payment-section').classList.toggle('visible', showPayment);
+    if (showPayment) recalcPay();
+  }
+
+  updatePreview(c);
+  updatePosDiagram();
+}
+
+function updateProductSummary(c) {
+  const allProducts = [...MAIN_PRODUCTS, ...SUB_PRODUCTS];
+  const rows = document.getElementById('product-summary-rows');
+  let html = '';
+  let totalItems = 0, totalPrice = 0, totalPV = 0;
+
+  allProducts.forEach(p => {
+    const qty = state.quantities[p.id] || 0;
+    if (qty > 0) {
+      html += `<div class="ps-row">
+        <span class="ps-name">${p.name}</span>
+        <span class="ps-qty">x${qty}</span>
+        <span class="ps-price">$${(p.price*qty).toLocaleString()}</span>
+        <span class="ps-pv">${(p.pv*qty).toLocaleString()} PV</span>
+      </div>`;
+      totalItems += qty;
+      totalPrice += p.price * qty;
+      totalPV += p.pv * qty;
+    }
+  });
+
+  html += `<div class="ps-row">
+    <span class="ps-name">合計</span>
+    <span class="ps-qty">${totalItems}点</span>
+    <span class="ps-price">$${totalPrice.toLocaleString()}</span>
+    <span class="ps-pv">${totalPV.toLocaleString()} PV</span>
+  </div>`;
+
+  rows.innerHTML = html;
+}
+
+function updateFeeBreakdown(c) {
+  document.getElementById('fee-products').textContent = `$${c.productTotal.toLocaleString()}`;
+  document.getElementById('fee-shipping').textContent = `${fmtUSD(c.shippingAmt)} (${c.shippingRate}%)`;
+  document.getElementById('fee-total-usd').textContent = `${fmtUSD(c.totalUSD)}`;
+  document.getElementById('fee-total-jpy').textContent = `≈ ¥${c.totalJPY.toLocaleString()}`;
+
+  const supportRow = document.getElementById('fee-support-row');
+  supportRow.classList.toggle('hidden', state.regType === 'add');
+
+  // Show/hide support pay sections
+  const showSupport = state.regType !== 'add';
+  ['d','c'].forEach(m => {
+    const el = document.getElementById('pay-support-section-' + m);
+    if (el) el.style.display = showSupport ? '' : 'none';
+  });
+}
+
+function updateRankCard(c) {
+  const badge = document.getElementById('rank-badge');
+  badge.className = 'rank-badge ' + c.rank;
+  badge.textContent = c.rankLabel;
+
+  document.getElementById('rank-sets').innerHTML = `<strong>${c.sets}セット</strong> / ${c.pvTotal.toLocaleString()} PV`;
+  document.getElementById('rank-pv-text').textContent = '';
+
+  // PV bar: show progress toward next 750 multiple
+  const nextMilestone = Math.ceil(c.pvTotal / 750) * 750 || 750;
+  const pct = Math.min(100, (c.pvTotal / nextMilestone) * 100);
+  const bar = document.getElementById('pv-bar');
+  bar.style.width = pct + '%';
+  bar.classList.toggle('warn', !c.pvValid && c.pvTotal > 0);
+
+  const warn = document.getElementById('pv-warn');
+  warn.style.display = (c.pvTotal > 0 && !c.pvValid) ? '' : 'none';
+}
+
+// ===== PAYMENT =====
+function setPayMode(mode) {
+  state.payMode = mode;
+  document.getElementById('btn-dollar-first').classList.toggle('active', mode === 'dollar_first');
+  document.getElementById('btn-cash-first').classList.toggle('active', mode === 'cash_first');
+  document.getElementById('pay-box-dollar').classList.toggle('visible', mode === 'dollar_first');
+  document.getElementById('pay-box-cash').classList.toggle('visible', mode === 'cash_first');
+
+  // Reset inputs
+  ['d-point','d-usdt','d-credit','c-cash','c-point','c-usdt','c-credit'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 0;
+  });
+  recalcPay();
+  recalc();
+}
+
+function selectSupportPay(btn) {
+  const mode = btn.dataset.mode;
+  const val = btn.dataset.val;
+  state.supportPay[mode] = val;
+
+  document.querySelectorAll(`.support-pay-opt[data-mode="${mode}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const labels = { point:'ポイント → $100', usdt:'USDT → $100', credit:'クレジット → $100', cash:'現金 → ¥15,400（固定）' };
+  document.getElementById('support-pay-display-' + mode).textContent = '選択中: ' + labels[val];
+
+  recalcPay();
+  recalc();
+}
+
+function recalcPay() {
+  if (!state.payMode) return;
+  const c = getCalc();
+  const productAndShipping = c.productTotal + c.shippingAmt; // target for section ②
+
+  if (state.payMode === 'dollar_first') {
+    const point = parseFloat(document.getElementById('d-point').value) || 0;
+    const usdt = parseFloat(document.getElementById('d-usdt').value) || 0;
+    const credit = parseFloat(document.getElementById('d-credit').value) || 0;
+    const dollarSum = point + usdt + credit;
+    const remaining = productAndShipping - dollarSum;
+    const cashJPY = remaining > 0 ? Math.round(remaining * c.fxRate) : 0;
+
+    document.getElementById('d-cash-auto').textContent = remaining > 0 ? `¥${cashJPY.toLocaleString()}` : '¥0';
+
+    const balance = document.getElementById('d-balance');
+    if (Math.abs(remaining) < 0.01 || remaining > 0) {
+      if (remaining <= 0.01 && remaining >= -0.01) {
+        balance.className = 'pay-balance ok';
+        balance.textContent = '✅ 過不足なし';
+      } else if (remaining > 0) {
+        balance.className = 'pay-balance ok';
+        balance.textContent = `✅ 過不足なし（残り ¥${cashJPY.toLocaleString()} を現金で）`;
+      }
+    }
+    if (dollarSum > productAndShipping) {
+      const over = dollarSum - productAndShipping;
+      balance.className = 'pay-balance over';
+      balance.textContent = `⚠️ $${over.toFixed(0)} 超過`;
+    }
+
+  } else {
+    const cash = parseFloat(document.getElementById('c-cash').value) || 0;
+    const point = parseFloat(document.getElementById('c-point').value) || 0;
+    const usdt = parseFloat(document.getElementById('c-usdt').value) || 0;
+    const credit = parseFloat(document.getElementById('c-credit').value) || 0;
+    const cashUSD = cash / c.fxRate;
+    const totalPaid = cashUSD + point + usdt + credit;
+    const diff = totalPaid - productAndShipping;
+
+    const balance = document.getElementById('c-balance');
+    if (Math.abs(diff) < 0.5) {
+      balance.className = 'pay-balance ok';
+      balance.textContent = '✅ 過不足なし';
+    } else if (diff > 0) {
+      balance.className = 'pay-balance over';
+      balance.textContent = `⚠️ $${diff.toFixed(0)} 超過`;
+    } else {
+      const shortage = -diff;
+      balance.className = 'pay-balance under';
+      balance.textContent = `あと $${shortage.toFixed(0)} 不足（¥${Math.round(shortage * c.fxRate).toLocaleString()} 相当）`;
+    }
+  }
+
+  updatePreview(c);
+}
+
+// ===== PREVIEW =====
+function buildPreviewText(c) {
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+
+  const v = id => document.getElementById(id)?.value || '';
+  const vt = id => document.getElementById(id)?.textContent || '';
+
+  const regTypeLabels = { new:'新規登録', 'new-base':'新規登録（ベースセンター）', add:'追加登録（アップグレード）' };
+  const regTypeLabel = regTypeLabels[state.regType] || state.regType;
+
+  const shippingEl = document.getElementById('shipping-zone');
+  const shippingLabel = shippingEl?.options[shippingEl.selectedIndex]?.text || '';
+
+  const genderVal = v('f-gender');
+
+  // Products
+  const allProducts = [...MAIN_PRODUCTS, ...SUB_PRODUCTS];
+  let productLines = '';
+  let hasProduct = false;
+  allProducts.forEach(p => {
+    const qty = state.quantities[p.id] || 0;
+    if (qty > 0) {
+      hasProduct = true;
+      const name = p.name.padEnd(14);
+      productLines += `  ${name}x${qty}  $${(p.price*qty).toLocaleString()}  (${(p.pv*qty).toLocaleString()}PV)\n`;
+    }
+  });
+  if (!hasProduct) productLines = '  商品を選択してください\n';
+  else productLines += `  合計         ${c.itemCount}点  $${c.productTotal.toLocaleString()}  (${c.pvTotal.toLocaleString()}PV)\n`;
+
+  // Fee
+  let feeLines = `  商品代金    : $${c.productTotal.toLocaleString()}\n`;
+  feeLines += `  送料(${c.shippingRate}%)  : ${fmtUSD(c.shippingAmt)}\n`;
+  if (state.regType !== 'add') feeLines += `  サポート料  : $100\n`;
+  feeLines += `  合計(USD)   : ${fmtUSD(c.totalUSD)}\n`;
+
+  // Payment
+  let payLines = '';
+  const pmLabels = { point:'ポイント', usdt:'USDT', credit:'クレジット', cash:'現金（円）', combined:'複数の決済方法を併用' };
+  if (state.payMethod && state.payMethod !== 'combined') {
+    payLines = `  支払い方法   : ${pmLabels[state.payMethod] || '（未選択）'}\n`;
+  } else if (state.payMethod === 'combined' && state.payMode) {
+    const supportPayLabels = { point:'ポイント $100', usdt:'USDT $100', credit:'クレジット $100', cash:`現金 ¥15,400（固定）` };
+
+    if (state.regType !== 'add') {
+      const m = state.payMode === 'dollar_first' ? 'd' : 'c';
+      payLines += `  ① サポート料 : ${supportPayLabels[state.supportPay[m]] || '-'}\n`;
+    }
+
+    payLines += '  ② 製品代金   :\n';
+
+    if (state.payMode === 'dollar_first') {
+      const point = parseFloat(document.getElementById('d-point').value) || 0;
+      const usdt = parseFloat(document.getElementById('d-usdt').value) || 0;
+      const credit = parseFloat(document.getElementById('d-credit').value) || 0;
+      const cashAuto = vt('d-cash-auto');
+      if (point > 0) payLines += `       ポイント  : $${point.toLocaleString()}\n`;
+      if (usdt > 0) payLines += `       USDT      : $${usdt.toLocaleString()}\n`;
+      if (credit > 0) payLines += `       クレジット: $${credit.toLocaleString()}\n`;
+      payLines += `       現金（円）: ${cashAuto}\n`;
+    } else {
+      const cash = parseFloat(document.getElementById('c-cash').value) || 0;
+      const point = parseFloat(document.getElementById('c-point').value) || 0;
+      const usdt = parseFloat(document.getElementById('c-usdt').value) || 0;
+      const credit = parseFloat(document.getElementById('c-credit').value) || 0;
+      payLines += `       現金（円）: ¥${cash.toLocaleString()}\n`;
+      if (point > 0) payLines += `       ポイント  : $${point.toLocaleString()}\n`;
+      if (usdt > 0) payLines += `       USDT      : $${usdt.toLocaleString()}\n`;
+      if (credit > 0) payLines += `       クレジット: $${credit.toLocaleString()}\n`;
+    }
+  } else if (!state.payMethod) {
+    payLines = '  （支払い方法を選択してください）\n';
+  }
+
+  // Delivery
+  let deliveryLines = '';
+  if (document.getElementById('diff-addr-toggle').checked) {
+    deliveryLines = `
+【お届け先情報】
+  9.  お届け先氏名   : ${v('f-del-name') || '（未入力）'}
+  10. お届け先電話   : ${v('f-del-phone') || '（未入力）'}
+  11. お届け先住所   : ${v('f-del-addr') || '（未入力）'}
+  12. お届け先郵便番号: ${v('f-del-zip') || '（未入力）'}`;
+  }
+
+  const posDirMap = { left1:'←1人目は左', left:'←左', right:'右→' };
+  const posDir = posDirMap[state.posDirection] || state.posDirection;
+
+  const text = `━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  BULION 登録申込書
+  計算日: ${dateStr}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【登録情報】
+  登録種別 : ${regTypeLabel}
+  ランク   : ${c.rankLabel}
+  発送先   : ${shippingLabel}
+
+【選択商品】
+${productLines}
+【料金内訳】
+${feeLines}
+【支払い内訳】
+${payLines}
+【会員情報】
+  1.  会員名       : ${v('f-name') || '（未入力）'}
+  2.  性別         : ${genderVal || '（未入力）'}
+  3.  生年月日     : ${v('f-dob') || '（未入力）'}
+  4.  証明書番号   : ${v('f-id-num') || '（未入力）'}
+  5.  メール       : ${v('f-email') || '（未入力）'}
+  6.  携帯電話     : ${v('f-phone') || '（未入力）'}
+  7.  登録住所     : ${v('f-addr') || '（未入力）'}
+  8.  郵便番号     : ${v('f-zip') || '（未入力）'}${deliveryLines}
+  14. 紹介者ID     : ${v('f-ref-id') || '（未入力）'}
+  　  紹介者名前   : ${v('f-ref-name') || '（未入力）'}
+  15. 指定POSID    : ${v('f-pos-id') || '（未入力）'}
+  　  指定POS名前  : ${v('f-pos-name') || '（未入力）'}
+  16. 指定区分     : ${posDir}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  return text;
+}
+
+let _lastPreviewText = '';
+function updatePreview(c) {
+  if (!c) c = getCalc();
+  const text = buildPreviewText(c);
+  _lastPreviewText = text;
+  document.getElementById('preview-text').textContent = text;
+}
+
+// ===== POSITION DIAGRAM =====
+function updatePosDiagram() {
+  const refName = document.getElementById('f-ref-name')?.value || '';
+  const refId   = document.getElementById('f-ref-id')?.value   || '';
+  const posName = document.getElementById('f-pos-name')?.value || '';
+  const posId   = document.getElementById('f-pos-id')?.value   || '';
+  const myName  = document.getElementById('f-name')?.value     || '';
+
+  document.getElementById('pd-ref-name').textContent = refName || '（紹介者）';
+  document.getElementById('pd-ref-id').textContent   = refId   || '-';
+  document.getElementById('pd-pos-name').textContent = posName || '（指定ポジション）';
+  document.getElementById('pd-pos-id').textContent   = posId   || '-';
+
+  const leftNode  = document.getElementById('pd-left-node');
+  const rightNode = document.getElementById('pd-right-node');
+  const isRight   = state.posDirection === 'right';
+
+  // 登録者側：表示 / 非登録者側：非表示（空き表示なし）
+  if (!isRight) {
+    // 左（left1 or left）に登録
+    leftNode.style.display  = '';
+    leftNode.className      = 'pos-node registrant';
+    leftNode.innerHTML      = `<div class="pn-name">${myName || '（登録者）'}</div><div class="pn-id">← 登録</div>`;
+    rightNode.style.display = 'none';
+  } else {
+    // 右に登録
+    leftNode.style.display  = 'none';
+    rightNode.style.display = '';
+    rightNode.className     = 'pos-node registrant';
+    rightNode.innerHTML     = `<div class="pn-name">${myName || '（登録者）'}</div><div class="pn-id">← 登録</div>`;
+  }
+}
+
+// ===== COPY =====
+function copyToClipboard() {
+  const btn = document.getElementById('copy-btn');
+  const text = _lastPreviewText || '（内容がありません）';
+
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {}).catch(fallback);
+  } else {
+    fallback();
+  }
+
+  btn.textContent = '✓ コピーしました！';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = '📋 クリップボードにコピー';
+    btn.classList.remove('copied');
+  }, 2000);
+}
+
+// ===== ADMIN (gear x5) =====
+let gearCount = 0, gearTimer = null;
+document.getElementById('gear-btn').addEventListener('click', () => {
+  gearCount++;
+  clearTimeout(gearTimer);
+  gearTimer = setTimeout(() => { gearCount = 0; }, 2000);
+  if (gearCount >= 5) {
+    gearCount = 0;
+    document.getElementById('admin-bar').classList.toggle('visible');
+  }
+});
+
+// ===== SHIPPING ZONE =====
+document.getElementById('shipping-zone').addEventListener('change', recalc);
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>
