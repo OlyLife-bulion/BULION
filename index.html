@@ -1144,14 +1144,14 @@ function updatePosDiagram() {
     // 左（left1 or left）に登録
     leftNode.style.display  = '';
     leftNode.className      = 'pos-node registrant';
-    leftNode.innerHTML      = `<div class="pn-name">${myName || '（登録者）'}</div><div class="pn-id">← 登録</div>`;
+    leftNode.innerHTML      = `<div class="pn-name">${myName || '（登録者）'}</div>`;
     rightNode.style.display = 'none';
   } else {
     // 右に登録
     leftNode.style.display  = 'none';
     rightNode.style.display = '';
     rightNode.className     = 'pos-node registrant';
-    rightNode.innerHTML     = `<div class="pn-name">${myName || '（登録者）'}</div><div class="pn-id">← 登録</div>`;
+    rightNode.innerHTML     = `<div class="pn-name">${myName || '（登録者）'}`;
   }
 }
 
