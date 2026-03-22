@@ -789,7 +789,8 @@ function getCalc() {
     }
   });
 
-  const shippingRate = parseInt(document.getElementById('shipping-zone').value) || 10;
+  const shippingRateEl = document.getElementById('shipping-zone');
+  const shippingRate = shippingRateEl.value !== '' ? parseInt(shippingRateEl.value) : 10;
   // 送料：小数点第2位まで切り上げ
   const shippingAmt = roundUp2(productTotal * shippingRate / 100);
   const supportFee = (state.regType !== 'add') ? 100 : 0;
