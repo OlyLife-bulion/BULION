@@ -222,10 +222,10 @@ header{background:var(--surface);border-bottom:3px solid var(--accent);padding:1
 <!-- ADMIN BAR -->
 <div id="admin-bar">
   <label>為替レート $1 =</label>
-  <input type="number" id="fx-rate" value="170" min="1" step="1">
+  <input type="number" id="fx-rate" value="165" min="1" step="1">
   <label>¥</label>
   <button onclick="recalc()">適用</button>
-  <span class="text-muted text-sm">（デフォルト: $1 = ¥170）</span>
+  <span class="text-muted text-sm">（デフォルト: $1 = ¥165）</span>
 </div>
 
 <!-- MAIN -->
@@ -632,7 +632,7 @@ let state = {
   payMode: null,   // 'dollar_first' | 'cash_first' (combined時のみ)
   supportPay: { d: 'cash', c: 'cash' },
   posDirection: 'left1', // 'left1'|'left'|'right'
-  fxRate: 170
+  fxRate: 165
 };
 
 // ===== INIT =====
@@ -772,7 +772,7 @@ function fmtUSD(n) {
 
 // ===== CALC ENGINE =====
 function getCalc() {
-  const fxRate = parseFloat(document.getElementById('fx-rate').value) || 170;
+  const fxRate = parseFloat(document.getElementById('fx-rate').value) || 165;
   state.fxRate = fxRate;
 
   let productTotal = 0;
